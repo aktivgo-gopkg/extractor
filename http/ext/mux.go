@@ -28,7 +28,8 @@ func (s MuxExtractor) ExtractUrlVarsUnits(
 		value, ok := mux.Vars(r)[unit.Name]
 		if !ok {
 			if unit.Required {
-				return errors.ErrBadRequest.WithMessage("url unit not found")
+				return errors.ErrBadRequest.WithMessage(unit.Name).
+					WithWrappedMessage("requirement url unit not found")
 			}
 
 			extractedUnits[unit.Name] = unit.DefaultValue

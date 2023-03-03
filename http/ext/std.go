@@ -48,7 +48,8 @@ func (s StandardExtractor) ExtractQueryParamsUnits(
 		value := r.URL.Query().Get(unit.Name)
 		if value == "" {
 			if unit.Required {
-				return errors.ErrBadRequest.WithMessage("query params unit not found")
+				return errors.ErrBadRequest.WithMessage(unit.Name).
+					WithWrappedMessage("requirement query params unit not found")
 			}
 
 			extractedUnits[unit.Name] = unit.DefaultValue
@@ -67,7 +68,7 @@ func (s StandardExtractor) ExtractBody(
 ) error {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		return errors.ErrInternal.WithMessage("body reading error")
+		return errors.ErrInternal.WithMessage(err).WithWrappedMessage("body reading error")
 	}
 
 	return mapstructure.Decode(body, &dest)
@@ -82,19 +83,20 @@ func (s StandardExtractor) ExtractBodyUnits(
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		return errors.ErrInternal.WithMessage("body reading error")
+		return errors.ErrInternal.WithMessage(err).WithWrappedMessage("body reading error")
 	}
 
 	extractedBody, err := conv.FromJSON[map[string]any](body)
 	if err != nil {
-		return errors.ErrBadRequest.WithMessage("body is invalid")
+		return errors.ErrBadRequest.WithMessage(err).WithWrappedMessage("body is invalid")
 	}
 
 	for _, unit := range units {
 		value, ok := extractedBody[unit.Name]
 		if !ok {
 			if unit.Required {
-				return errors.ErrBadRequest.WithMessage("body unit not found")
+				return errors.ErrBadRequest.WithMessage(unit.Name).
+					WithWrappedMessage("requirement body unit not found")
 			}
 
 			value = unit.DefaultValue
