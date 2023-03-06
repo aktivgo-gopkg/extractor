@@ -13,6 +13,7 @@ require (
 	buf.build/gen/go/nse/error/protocolbuffers/go v1.28.1-20230217140654-b4c10278325e.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a // indirect
+	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gogo/status v1.1.1 // indirect

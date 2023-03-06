@@ -1,11 +1,11 @@
-package ext
+package extractor
 
 import (
-	"github.com/aktivgo-gopkg/extractor/http/def"
 	"github.com/mitchellh/mapstructure"
 	"github.com/semichkin-gopkg/conv"
 	"gitlab.collabox.dev/go/errors"
 	"io"
+	"log"
 )
 
 type StandardExtractor struct {
@@ -15,56 +15,34 @@ func NewStandardExtractor() *StandardExtractor {
 	return &StandardExtractor{}
 }
 
-func (s StandardExtractor) ExtractUrlVars(
-	_ def.Request,
-	_ def.Destination,
+func (s StandardExtractor) extractUrlVars(
+	_ Request,
+	_ Destination,
 ) error {
 	return nil
 }
 
-func (s StandardExtractor) ExtractUrlVarsUnits(
-	_ def.Request,
-	_ def.Destination,
-	_ def.UnitCollection,
+func (s StandardExtractor) extractQueryParams(
+	r Request,
+	dest Destination,
 ) error {
-	return nil
-}
-
-func (s StandardExtractor) ExtractQueryParams(
-	r def.Request,
-	dest def.Destination,
-) error {
-	return mapstructure.Decode(r.URL.Query(), &dest)
-}
-
-func (s StandardExtractor) ExtractQueryParamsUnits(
-	r def.Request,
-	dest def.Destination,
-	units def.UnitCollection,
-) error {
-	extractedUnits := make(map[string]any)
-
-	for _, unit := range units {
-		value := r.URL.Query().Get(unit.Name)
-		if value == "" {
-			if unit.Required {
-				return errors.ErrBadRequest.WithMessage(unit.Name).
-					WithWrappedMessage("requirement query params unit not found")
-			}
-
-			extractedUnits[unit.Name] = unit.DefaultValue
-			continue
-		}
-
-		extractedUnits[unit.Name] = value
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		MatchName: func(mapKey, fieldName string) bool {
+			log.Println(mapKey, fieldName)
+			return true
+		},
+		Result: dest,
+	})
+	if err != nil {
+		return err
 	}
 
-	return mapstructure.Decode(extractedUnits, &dest)
+	return decoder.Decode(r.URL.Query())
 }
 
-func (s StandardExtractor) ExtractBody(
-	r def.Request,
-	dest def.Destination,
+func (s StandardExtractor) extractBody(
+	r Request,
+	dest Destination,
 ) error {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -74,10 +52,10 @@ func (s StandardExtractor) ExtractBody(
 	return mapstructure.Decode(body, &dest)
 }
 
-func (s StandardExtractor) ExtractBodyUnits(
-	r def.Request,
-	dest def.Destination,
-	units def.UnitCollection,
+func (s StandardExtractor) extractBodyUnits(
+	r Request,
+	dest Destination,
+	units UnitCollection,
 ) error {
 	extractedUnits := make(map[string]any)
 
